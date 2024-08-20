@@ -13,7 +13,7 @@ This repository contains supplementary file, codebase and data generated for our
 3. **pathway_embeddings.ipynb**: Here, we've experimented with different embedding techniques with different prompting strategies.
 3. **visualize_mondrian_map.ipynb**: In this notebook, we've generated the Mondrian Maps in our Gliblastoma case study.
 
-**Data:**All the datasets used and processed are stored in the `data` folder.
+**Data:** All the datasets used and processed are stored in the `data` folder.
 
 ## Flow Chart
 ![Flow-Diagram](figures/banner.png)
