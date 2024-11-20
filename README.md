@@ -44,7 +44,7 @@ If you find out tool useful, cite our [latest preprint](https://www.biorxiv.org/
 
 ## Contact
 
-Reach us at [jakechen@uab.edu](mailto:jakechen@uab.edu) or [fuad021.edu](mailto:fuad021@uab.edu).
+Reach us at [jakechen@uab.edu](mailto:jakechen@uab.edu) or [fuad021@uab.edu](mailto:fuad021@uab.edu).
 
 ## License
 Mondrian Map codebase is under MIT license.
