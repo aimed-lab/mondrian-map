@@ -29,7 +29,7 @@ This repository contains supplementary file, codebase and data generated for our
 If you find out tool useful, cite our [latest preprint](https://www.biorxiv.org/content/10.1101/2024.04.11.589093v2).
 
 ```
-@article {Al Abir2024.04.11.589093,
+@article {AlAbir_MondrianMap,
 	author = {Al Abir, Fuad and Chen, Jake Y.},
 	title = {Mondrian Abstraction and Language Model Embeddings for Differential Pathway Analysis},
 	elocation-id = {2024.04.11.589093},
