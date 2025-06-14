@@ -24,6 +24,9 @@ def load_pathway_info():
 @st.cache_data
 def load_dataset(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path)
+    df["Description"] = df["GS_ID"].map(lambda x: pathway_info.get(x, {}).get("Description", ""))
+    df["Ontology"] = df["GS_ID"].map(lambda x: pathway_info.get(x, {}).get("Pathway Ontology", ""))
+    df["Disease"] = df["GS_ID"].map(lambda x: pathway_info.get(x, {}).get("Disease", ""))
     return df
 
 st.title("Mondrian Map Explorer")
@@ -38,7 +41,14 @@ fig = px.scatter(
     df,
     x="x",
     y="y",
-    hover_name="NAME",
+    custom_data=["NAME", "Description", "Ontology", "Disease"],
+    hover_template=(
+        "<b>%{customdata[0]}</b><br><br>" +
+        "Description: %{customdata[1]}<br>" +
+        "Ontology: %{customdata[2]}<br>" +
+        "Disease: %{customdata[3]}<br>" +
+        "<extra></extra>"
+    ),
     color="wFC",
     color_continuous_scale="RdBu",
     height=700,
