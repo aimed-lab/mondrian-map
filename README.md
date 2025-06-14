@@ -42,6 +42,47 @@ If you find out tool useful, cite our [latest preprint](https://www.biorxiv.org/
 }
 ```
 
+## Release Notes
+
+### Version 1.1 (December 14, 2025)
+
+**Major Features Added:**
+- 🎨 **Complete Authentic Mondrian Algorithm**: Faithful implementation of the exact algorithm from the bioRxiv paper
+- 🖼️ **Interactive Web Application**: Full-featured Streamlit app with authentic Mondrian map generation
+- 📊 **Canvas Grid System**: Multi-dataset comparison with customizable grid layouts
+- 🔧 **Enhanced User Interface**: Professional UI with detailed popup views, statistics, and color legends
+
+**Technical Improvements:**
+- Implemented exact `GridSystem`, `Block`, `Line`, `Corner` classes from research notebooks
+- Added 3-stage generation process: block placement → Manhattan relationship lines → line extensions
+- Integrated authentic color scheme with proper thresholds and area scaling
+- Added light gray grid lines for authentic Mondrian appearance matching the paper
+- Implemented pathway network relationship visualization
+- Added file upload capability for custom datasets
+- Enhanced hover tooltips and interactive features
+
+**Data Integration:**
+- Support for all 6 pre-computed datasets from the case study
+- Complete pathway annotation system with descriptions and ontology
+- Network relationship data integration for Manhattan connection lines
+- Comprehensive statistics and analysis features
+
+**User Experience:**
+- Multi-select dataset configuration
+- Customizable canvas layouts (1×1 to 4×4 grids)
+- Toggle options for different viewing modes
+- Adaptive text scaling and positioning
+- Professional color legend and comprehensive pathway details
+
+### Version 1.0 (Initial Publication)
+
+**Core Research Implementation:**
+- Original Mondrian Map methodology and algorithms
+- Jupyter notebooks for data preparation and visualization
+- Clinical data analysis and patient profile selection
+- Pathway embeddings with language model techniques
+- Glioblastoma case study implementation
+
 ## Contact
 
 Reach us at [jakechen@uab.edu](mailto:jakechen@uab.edu) or [fuad021@uab.edu](mailto:fuad021@uab.edu).
@@ -49,15 +90,65 @@ Reach us at [jakechen@uab.edu](mailto:jakechen@uab.edu) or [fuad021@uab.edu](mai
 ## License
 Mondrian Map codebase is under MIT license.
 
-## Web Application
+## Web Application - Authentic Mondrian Map Explorer
 
-A simple Streamlit application is provided for exploring the pre-computed
-pathway embeddings. After installing the dependencies from
-`requirements.txt`, run the following command from the repository root:
+An interactive Streamlit web application is provided that implements the complete authentic Mondrian Map algorithm from our bioRxiv paper. The application provides a faithful reproduction of the research methodology with enhanced interactive features.
 
+### Features
+
+🎨 **Authentic Algorithm Implementation**
+- Complete `GridSystem`, `Block`, `Line`, `Corner` classes with exact parameters from the paper
+- 3-stage generation process: blocks → Manhattan relationship lines → line extensions
+- Authentic color scheme: Red (up-regulated), Blue (down-regulated), Yellow (moderate), Black (neutral), White (non-significant)
+- Area scaling using `abs(log2(wFC)) * 4000` formula
+- Light gray grid lines for authentic Mondrian appearance
+
+🖼️ **Interactive Visualization**
+- Canvas grid layout for comparing multiple datasets simultaneously
+- Detailed popup views with comprehensive pathway analysis
+- Adaptive text scaling and positioning for pathway labels
+- Clickable interface with hover tooltips and detailed statistics
+
+📊 **Data Integration**
+- Support for all 6 pre-computed datasets (Aggressive R1/R2, Baseline R1/R2, Nonaggressive R1/R2)
+- Pathway network relationship visualization (Manhattan connection lines)
+- File upload capability for custom CSV datasets
+- Complete pathway annotation system with descriptions and ontology information
+
+🔧 **User Interface**
+- Multi-select dataset configuration
+- Customizable canvas grid layouts (1×1 to 4×4)
+- Toggle options for full-size maps, color legends, and maximized views
+- Professional color legend and comprehensive statistics
+
+### Installation & Usage
+
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+2. Run the application:
 ```bash
 streamlit run app.py
 ```
 
-The app will load the prepared visualization datasets and display an
-interactive scatter plot where each point corresponds to a pathway.
+3. Open your browser to `http://localhost:8501`
+
+### Supported Data Format
+
+The application accepts CSV files with the following required columns:
+- `GS_ID`: Gene set/pathway identifier
+- `wFC`: Weighted fold change
+- `pFDR`: Adjusted p-value (FDR)
+- `x`, `y`: Coordinates for pathway positioning
+
+### Algorithm Parameters
+
+The implementation uses the exact parameters from the research paper:
+- Canvas: 1001×1001 pixels
+- Block size: 20×20 pixels
+- Line width: 5 pixels (borders), 1 pixel (grid lines)
+- Area scalar: 4000
+- Up-regulation threshold: ≥1.25
+- Down-regulation threshold: ≤0.75
