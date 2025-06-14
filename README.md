@@ -48,3 +48,16 @@ Reach us at [jakechen@uab.edu](mailto:jakechen@uab.edu) or [fuad021@uab.edu](mai
 
 ## License
 Mondrian Map codebase is under MIT license.
+
+## Web Application
+
+A simple Streamlit application is provided for exploring the pre-computed
+pathway embeddings. After installing the dependencies from
+`requirements.txt`, run the following command from the repository root:
+
+```bash
+streamlit run app.py
+```
+
+The app will load the prepared visualization datasets and display an
+interactive scatter plot where each point corresponds to a pathway.
