@@ -1,18 +1,18 @@
-# Streamlit Cloud Compatible Requirements
-# Minimal essentials only
+# Streamlit Cloud Optimized Requirements
+# Minimal dependencies for Mondrian Map Explorer
 
 # Core web framework
-streamlit>=1.28.0
+streamlit==1.45.0
 
 # Data processing (essential)
-pandas>=2.0.0
-numpy>=1.24.0
+pandas==2.3.0
+numpy==2.0.2
 
 # Visualization (essential)
-plotly>=5.15.0
+plotly==6.1.2
 
-# Standard library (only if needed)
-pathlib2>=2.3.0; python_version<"3.4"
+# File handling
+pathlib2==2.3.7
 
 # Security updates (latest stable versions)
 urllib3==2.4.0
