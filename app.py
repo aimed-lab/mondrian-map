@@ -36,6 +36,7 @@ dn_th = abs(1-(up_th-1))
 class Colors(str, Enum):
     WHITE = "#FFFFFF"
     GRAY = "#3e3f39"
+    LIGHT_GRAY = "#D3D3D3"
     BLACK = "#050103"
     BLACK_A = "#05010333"
     BLACK_AA = "#050103AA"
@@ -282,6 +283,251 @@ def get_manhattan_line_color(block_a, block_b):
     else:
         return Colors.YELLOW
 
+def create_smart_grid_lines(grid_system, blocks):
+    """
+    Create smart grid lines following authentic Mondrian principles:
+    1. Light gray color
+    2. Erase lines intersecting tiles in the middle
+    3. Remove lines that don't connect to tile boundaries or canvas edges
+    4. Lines can start/end at canvas boundary OR closest tile edge
+    5. Only keep essential structural lines that serve a purpose
+    """
+    smart_lines = []
+    
+    # Get all meaningful tile boundaries and their positions
+    tile_edges = get_meaningful_tile_edges(blocks)
+    
+    # Create vertical lines that connect meaningful points
+    vertical_lines = create_meaningful_vertical_lines(grid_system, blocks, tile_edges)
+    smart_lines.extend(vertical_lines)
+    
+    # Create horizontal lines that connect meaningful points  
+    horizontal_lines = create_meaningful_horizontal_lines(grid_system, blocks, tile_edges)
+    smart_lines.extend(horizontal_lines)
+    
+    return smart_lines
+
+def get_meaningful_tile_edges(blocks):
+    """Get tile edges that are structurally important"""
+    edges = {
+        'vertical': set(),
+        'horizontal': set(),
+        'tile_bounds': {}
+    }
+    
+    for block in blocks:
+        # Store tile boundaries for intersection checking
+        edges['tile_bounds'][block.id] = {
+            'left': block.top_left_p[0],
+            'right': block.bottom_right_p[0], 
+            'top': block.top_left_p[1],
+            'bottom': block.bottom_right_p[1]
+        }
+        
+        # Add significant edges (not all edges, only structurally important ones)
+        edges['vertical'].add(block.top_left_p[0])   # left edge
+        edges['vertical'].add(block.bottom_right_p[0])  # right edge
+        edges['horizontal'].add(block.top_left_p[1])  # top edge
+        edges['horizontal'].add(block.bottom_right_p[1])  # bottom edge
+    
+    return edges
+
+def create_meaningful_vertical_lines(grid_system, blocks, tile_edges):
+    """Create vertical lines that serve structural purpose"""
+    lines = []
+    
+    for x_pos in tile_edges['vertical']:
+        if x_pos <= 0 or x_pos >= 1000:  # Skip canvas boundaries
+            continue
+            
+        # Find meaningful segments for this vertical line
+        segments = find_structural_vertical_segments(x_pos, blocks, tile_edges)
+        
+        for start_y, end_y in segments:
+            if end_y - start_y > 40:  # Only keep substantial segments
+                lines.append(Line(
+                    Point(x_pos, start_y), 
+                    Point(x_pos, end_y), 
+                    LineDir.DOWN if end_y > start_y else LineDir.UP, 
+                    Colors.LIGHT_GRAY, 
+                    1
+                ))
+    
+    return lines
+
+def create_meaningful_horizontal_lines(grid_system, blocks, tile_edges):
+    """Create horizontal lines that serve structural purpose"""
+    lines = []
+    
+    for y_pos in tile_edges['horizontal']:
+        if y_pos <= 0 or y_pos >= 1000:  # Skip canvas boundaries
+            continue
+            
+        # Find meaningful segments for this horizontal line
+        segments = find_structural_horizontal_segments(y_pos, blocks, tile_edges)
+        
+        for start_x, end_x in segments:
+            if end_x - start_x > 40:  # Only keep substantial segments
+                lines.append(Line(
+                    Point(start_x, y_pos), 
+                    Point(end_x, y_pos), 
+                    LineDir.RIGHT if end_x > start_x else LineDir.LEFT, 
+                    Colors.LIGHT_GRAY, 
+                    1
+                ))
+    
+    return lines
+
+def find_structural_vertical_segments(x_pos, blocks, tile_edges):
+    """Find vertical line segments that serve structural purpose"""
+    segments = []
+    
+    # Find tiles that this vertical line would intersect or touch
+    intersecting_tiles = []
+    touching_tiles = []
+    
+    for block in blocks:
+        bounds = tile_edges['tile_bounds'][block.id]
+        
+        # Check if line intersects tile interior
+        if bounds['left'] < x_pos < bounds['right']:
+            intersecting_tiles.append((bounds['top'], bounds['bottom']))
+        # Check if line touches tile edge
+        elif bounds['left'] == x_pos or bounds['right'] == x_pos:
+            touching_tiles.append((bounds['top'], bounds['bottom']))
+    
+    # Only create segments where line serves structural purpose
+    if not touching_tiles and not intersecting_tiles:
+        return []  # No structural purpose
+    
+    # Sort all occupied ranges
+    all_occupied = sorted(intersecting_tiles + touching_tiles)
+    
+    # Merge overlapping ranges
+    merged = []
+    for start, end in all_occupied:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    
+    # Create segments only in meaningful gaps
+    if not merged:
+        return []
+    
+    # Only create segments that connect to tile edges or canvas
+    current_y = 0
+    for start, end in merged:
+        # Segment before tile (only if it connects to something meaningful)
+        if current_y < start and (current_y == 0 or has_structural_purpose_vertical(x_pos, current_y, start, blocks)):
+            segments.append((current_y, start))
+        current_y = max(current_y, end)
+    
+    # Final segment to canvas edge (only if meaningful)
+    if current_y < 1000 and has_structural_purpose_vertical(x_pos, current_y, 1000, blocks):
+        segments.append((current_y, 1000))
+    
+    return segments
+
+def find_structural_horizontal_segments(y_pos, blocks, tile_edges):
+    """Find horizontal line segments that serve structural purpose"""
+    segments = []
+    
+    # Find tiles that this horizontal line would intersect or touch
+    intersecting_tiles = []
+    touching_tiles = []
+    
+    for block in blocks:
+        bounds = tile_edges['tile_bounds'][block.id]
+        
+        # Check if line intersects tile interior
+        if bounds['top'] < y_pos < bounds['bottom']:
+            intersecting_tiles.append((bounds['left'], bounds['right']))
+        # Check if line touches tile edge
+        elif bounds['top'] == y_pos or bounds['bottom'] == y_pos:
+            touching_tiles.append((bounds['left'], bounds['right']))
+    
+    # Only create segments where line serves structural purpose
+    if not touching_tiles and not intersecting_tiles:
+        return []  # No structural purpose
+    
+    # Sort all occupied ranges
+    all_occupied = sorted(intersecting_tiles + touching_tiles)
+    
+    # Merge overlapping ranges
+    merged = []
+    for start, end in all_occupied:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    
+    # Create segments only in meaningful gaps
+    if not merged:
+        return []
+    
+    # Only create segments that connect to tile edges or canvas
+    current_x = 0
+    for start, end in merged:
+        # Segment before tile (only if it connects to something meaningful)
+        if current_x < start and (current_x == 0 or has_structural_purpose_horizontal(y_pos, current_x, start, blocks)):
+            segments.append((current_x, start))
+        current_x = max(current_x, end)
+    
+    # Final segment to canvas edge (only if meaningful)
+    if current_x < 1000 and has_structural_purpose_horizontal(y_pos, current_x, 1000, blocks):
+        segments.append((current_x, 1000))
+    
+    return segments
+
+def has_structural_purpose_vertical(x_pos, start_y, end_y, blocks):
+    """Check if a vertical line segment serves structural purpose"""
+    # A vertical line segment has structural purpose if:
+    # 1. It connects two tile edges
+    # 2. It extends from a tile edge to canvas boundary
+    # 3. It separates distinct regions
+    
+    # Check if segment endpoints align with tile edges
+    start_touches_tile = any(
+        (block.top_left_p[1] == start_y or block.bottom_right_p[1] == start_y) and
+        (block.top_left_p[0] <= x_pos <= block.bottom_right_p[0])
+        for block in blocks
+    )
+    
+    end_touches_tile = any(
+        (block.top_left_p[1] == end_y or block.bottom_right_p[1] == end_y) and
+        (block.top_left_p[0] <= x_pos <= block.bottom_right_p[0])
+        for block in blocks
+    )
+    
+    # Has purpose if it connects tile edges or extends from tile to canvas
+    return start_touches_tile or end_touches_tile or start_y == 0 or end_y == 1000
+
+def has_structural_purpose_horizontal(y_pos, start_x, end_x, blocks):
+    """Check if a horizontal line segment serves structural purpose"""
+    # A horizontal line segment has structural purpose if:
+    # 1. It connects two tile edges
+    # 2. It extends from a tile edge to canvas boundary
+    # 3. It separates distinct regions
+    
+    # Check if segment endpoints align with tile edges
+    start_touches_tile = any(
+        (block.top_left_p[0] == start_x or block.bottom_right_p[0] == start_x) and
+        (block.top_left_p[1] <= y_pos <= block.bottom_right_p[1])
+        for block in blocks
+    )
+    
+    end_touches_tile = any(
+        (block.top_left_p[0] == end_x or block.bottom_right_p[0] == end_x) and
+        (block.top_left_p[1] <= y_pos <= block.bottom_right_p[1])
+        for block in blocks
+    )
+    
+    # Has purpose if it connects tile edges or extends from tile to canvas
+    return start_touches_tile or end_touches_tile or start_x == 0 or end_x == 1000
+
+
+
 def get_manhattan_lines_2(corner_a: Corner, corner_b: Corner, connector: Point, color: Colors) -> List[Line]:
     if corner_a.point.x == corner_b.point.x and corner_a.point.y != corner_b.point.y:
         if corner_a.position in [CornerPos.TOP_LEFT, CornerPos.BOTTOM_LEFT]:
@@ -396,7 +642,7 @@ def load_network_data(dataset_name):
     else:
         return None
 
-def create_authentic_mondrian_map(df, dataset_name, mem_df=None, maximize=False):
+def create_authentic_mondrian_map(df, dataset_name, mem_df=None, maximize=False, show_pathway_ids=True):
     """
     Create authentic Mondrian map using the exact algorithm from the notebooks
     """
@@ -439,23 +685,15 @@ def create_authentic_mondrian_map(df, dataset_name, mem_df=None, maximize=False)
     Line(Point(1000, 0), Point(1000, 1000), LineDir.DOWN, Colors.GRAY, THIN_LINE_WIDTH)
     Line(Point(1000, 1000), Point(0, 1000), LineDir.LEFT, Colors.GRAY, THIN_LINE_WIDTH)
     Line(Point(0, 1000), Point(0, 0), LineDir.UP, Colors.GRAY, THIN_LINE_WIDTH)
-    
-    # Add grid lines for authentic Mondrian appearance
-    # Vertical grid lines
-    for i in range(1, len(grid_system.grid_lines_v) - 1):
-        x_pos = grid_system.grid_lines_v[f'v{i}']
-        Line(Point(x_pos, 0), Point(x_pos, 1000), LineDir.DOWN, Colors.GRAY, THIN_LINE_WIDTH)
-    
-    # Horizontal grid lines  
-    for i in range(1, len(grid_system.grid_lines_h) - 1):
-        y_pos = grid_system.grid_lines_h[f'h{i}']
-        Line(Point(0, y_pos), Point(1000, y_pos), LineDir.RIGHT, Colors.GRAY, THIN_LINE_WIDTH)
 
     # STAGE 1: Create blocks
     all_blocks = []
     for idx, rect in enumerate(rectangles):
         b = Block(rect[0], rect[1], areas_sorted[idx], colors_sorted[idx], pathway_ids_sorted[idx])
         all_blocks.append(b)
+    
+    # Create smart grid lines that avoid intersecting tiles (after blocks are created)
+    smart_grid_lines = create_smart_grid_lines(grid_system, all_blocks)
 
     # STAGE 2: Create relationship lines (Manhattan lines)
     all_manhattan_lines = []
@@ -510,88 +748,107 @@ def create_authentic_mondrian_map(df, dataset_name, mem_df=None, maximize=False)
         # Convert Colors enum to string for Plotly
         fill_color = str(block.color.value) if hasattr(block.color, 'value') else str(block.color)
         
+        # Store pathway data for click handling
+        pathway_data = {
+            'Name': pathway_row['NAME'],
+            'ID': pathway_row['GS_ID'], 
+            'Fold Change': f"{pathway_row['wFC']:.3f}",
+            'P-value': f"{pathway_row['pFDR']:.2e}",
+            'Description': pathway_row.get('Description', 'N/A'),
+            'Ontology': pathway_row.get('Ontology', 'N/A'),
+            'Disease': pathway_row.get('Disease', 'N/A'),
+            'Color': get_mondrian_color_description(pathway_row['wFC'], pathway_row['pFDR'])
+        }
+        
         traces.append(go.Scatter(
             x=x_coords,
             y=y_coords,
             fill="toself",
             fillcolor=fill_color,
-            line=dict(width=0, color="white"),  # Zero-width white border
+            line=dict(width=0, color=fill_color),  # No border - line color matches fill
             mode="lines",
-            hovertemplate=(
-                f"<b>{pathway_row['NAME']}</b><br>" +
-                f"ID: {pathway_row['GS_ID']}<br>" +
-                f"FC: {pathway_row['wFC']:.3f}<br>" +
-                f"p-value: {pathway_row['pFDR']:.2e}<br>" +
-                f"<i>Click for details</i>" +
-                "<extra></extra>"
-            ),
+            hovertemplate=f"<b>{pathway_row['NAME']}</b><br><i>Click for full-screen view</i><extra></extra>",  # Simple hover with click hint
             showlegend=False,
-            name=pathway_row['NAME']
+            name=pathway_row['NAME'],
+            customdata=[pathway_data],
+            meta={'dataset': dataset_name, 'pathway_id': pathway_row['GS_ID']}  # Add metadata for click handling
         ))
         
-        # Add pathway ID text ABOVE tiles, centered and scaled
-        center_x = (block.top_left_p[0] + block.bottom_right_p[0]) / 2
-        center_y = (block.top_left_p[1] + block.bottom_right_p[1]) / 2
-        
-        # Calculate tile dimensions for scaling
-        tile_width = block.bottom_right_p[0] - block.top_left_p[0]
-        tile_height = block.bottom_right_p[1] - block.top_left_p[1]
-        tile_area = tile_width * tile_height
-        
-        # Position text well above the tile (outside and centered)
-        text_x = center_x  # Centered horizontally
-        text_y = block.top_left_p[1] - 25  # Further above the tile
-        
-        # If text would go outside canvas, position it inside but at the top
-        if text_y < 30:
-            text_y = block.top_left_p[1] + 20  # Position at top inside the tile
-        
-        # Scale text size according to tile size
-        base_size = 12 if not maximize else 16
-        # Scale factor based on tile area (larger tiles get larger text)
-        scale_factor = min(max(tile_area / 2000, 0.7), 2.0)  # Scale between 0.7x and 2x
-        scaled_size = int(base_size * scale_factor)
-        
-        # Ensure minimum and maximum text sizes
-        scaled_size = max(8, min(scaled_size, 24))
-        
-        traces.append(go.Scatter(
-            x=[text_x],
-            y=[text_y],
-            mode="text",
-            text=[block.id],
-            textfont=dict(
-                size=scaled_size, 
-                color="black",  # Black text for good contrast
-                family="Arial Black"
-            ),
-            showlegend=False,
-            hoverinfo='skip'
-        ))
+        # Add pathway ID text ABOVE tiles, centered and scaled (if enabled)
+        if show_pathway_ids:
+            center_x = (block.top_left_p[0] + block.bottom_right_p[0]) / 2
+            center_y = (block.top_left_p[1] + block.bottom_right_p[1]) / 2
+            
+            # Calculate tile dimensions for scaling
+            tile_width = block.bottom_right_p[0] - block.top_left_p[0]
+            tile_height = block.bottom_right_p[1] - block.top_left_p[1]
+            tile_area = tile_width * tile_height
+            
+            # Position text well above the tile (outside and centered)
+            text_x = center_x  # Centered horizontally
+            text_y = block.top_left_p[1] - 25  # Further above the tile
+            
+            # If text would go outside canvas, position it inside but at the top
+            if text_y < 30:
+                text_y = block.top_left_p[1] + 20  # Position at top inside the tile
+            
+            # Scale text size according to tile size
+            base_size = 12 if not maximize else 16
+            # Scale factor based on tile area (larger tiles get larger text)
+            scale_factor = min(max(tile_area / 2000, 0.7), 2.0)  # Scale between 0.7x and 2x
+            scaled_size = int(base_size * scale_factor)
+            
+            # Ensure minimum and maximum text sizes
+            scaled_size = max(8, min(scaled_size, 24))
+            
+            traces.append(go.Scatter(
+                x=[text_x],
+                y=[text_y],
+                mode="text",
+                text=[block.id],
+                textfont=dict(
+                    size=scaled_size, 
+                    color="black",  # Black text for good contrast
+                    family="Arial"  # Regular font, not bold
+                ),
+                showlegend=False,
+                hoverinfo='skip'
+            ))
 
-    # Add all lines (grid lines and relationship lines) - Make sure they're visible
-    for line in Line.instances:
-        line_color = str(line.color.value) if hasattr(line.color, 'value') else str(line.color)
-        # Ensure grid lines are visible with proper width
-        line_width = max(line.strength, 2)  # Minimum width of 2 for visibility
-        
+    # Add smart grid lines (light gray, non-intersecting)
+    for line in smart_grid_lines:
         traces.append(go.Scatter(
             x=[line.point_a.x, line.point_b.x],
             y=[line.point_a.y, line.point_b.y],
             mode="lines",
-            line=dict(color=line_color, width=line_width),
+            line=dict(color="#D3D3D3", width=1),  # Light gray, thin lines
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+    
+    # Add canvas border lines only
+    border_lines = [line for line in Line.instances if line.strength == THIN_LINE_WIDTH and 
+                   ((line.point_a.x == 0 or line.point_a.x == 1000 or line.point_a.y == 0 or line.point_a.y == 1000) and
+                    (line.point_b.x == 0 or line.point_b.x == 1000 or line.point_b.y == 0 or line.point_b.y == 1000))]
+    
+    for line in border_lines:
+        traces.append(go.Scatter(
+            x=[line.point_a.x, line.point_b.x],
+            y=[line.point_a.y, line.point_b.y],
+            mode="lines",
+            line=dict(color="#808080", width=2),  # Gray border
             showlegend=False,
             hoverinfo='skip'
         ))
 
-    # Add Manhattan relationship lines
+    # Add Manhattan relationship lines (1pt thicker than grid lines)
     for line in all_manhattan_lines:
         line_color = str(line.color.value) if hasattr(line.color, 'value') else str(line.color)
         traces.append(go.Scatter(
             x=[line.point_a.x, line.point_b.x],
             y=[line.point_a.y, line.point_b.y],
             mode="lines",
-            line=dict(color=line_color, width=line.strength),
+            line=dict(color=line_color, width=2),  # 1pt thicker than grid lines (1pt)
             showlegend=False,
             hoverinfo='skip'
         ))
@@ -620,12 +877,13 @@ def create_authentic_mondrian_map(df, dataset_name, mem_df=None, maximize=False)
         height=height,
         width=width,
         showlegend=False,
-        margin=dict(l=20, r=20, t=60, b=20)
+        margin=dict(l=20, r=20, t=60, b=20),
+        clickmode='event+select'  # Enable click events
     )
     
     return fig
 
-def create_canvas_grid(df_list, dataset_names, canvas_rows, canvas_cols):
+def create_canvas_grid(df_list, dataset_names, canvas_rows, canvas_cols, show_pathway_ids=True):
     """
     Create the canvas grid that holds multiple Mondrian maps
     """
@@ -644,7 +902,7 @@ def create_canvas_grid(df_list, dataset_names, canvas_rows, canvas_cols):
         col = idx % canvas_cols + 1
         
         # Create individual Mondrian map for this dataset
-        mondrian_fig = create_authentic_mondrian_map(df, name, maximize=False)
+        mondrian_fig = create_authentic_mondrian_map(df, name, maximize=False, show_pathway_ids=show_pathway_ids)
         
         # Add traces to subplot
         for trace in mondrian_fig.data:
@@ -765,6 +1023,47 @@ def create_color_legend():
     
     return fig
 
+def handle_pathway_click(clicked_data, df):
+    """Handle pathway tile clicks and show detailed popup"""
+    if clicked_data and hasattr(clicked_data, 'selection') and clicked_data.selection:
+        # Get the clicked point data
+        points = clicked_data.selection.get('points', [])
+        if points:
+            point = points[0]
+            if 'customdata' in point and point['customdata']:
+                pathway_data = point['customdata'][0]
+                show_pathway_popup(pathway_data)
+
+def show_pathway_popup(pathway_data):
+    """Display pathway details in a structured popup"""
+    st.markdown("---")
+    st.markdown("### 🔬 **Pathway Details**")
+    
+    # Create two columns for better layout
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("**Basic Information:**")
+        st.write(f"**Name:** {pathway_data['Name']}")
+        st.write(f"**ID:** {pathway_data['ID']}")
+        st.write(f"**Classification:** {pathway_data['Color']}")
+        
+    with col2:
+        st.markdown("**Statistical Data:**")
+        st.write(f"**Fold Change:** {pathway_data['Fold Change']}")
+        st.write(f"**P-value:** {pathway_data['P-value']}")
+    
+    # Full width for description and metadata
+    st.markdown("**Biological Context:**")
+    if pathway_data['Description'] != 'N/A':
+        st.write(f"**Description:** {pathway_data['Description']}")
+    if pathway_data['Ontology'] != 'N/A':
+        st.write(f"**Ontology:** {pathway_data['Ontology']}")
+    if pathway_data['Disease'] != 'N/A':
+        st.write(f"**Disease Association:** {pathway_data['Disease']}")
+    
+    st.markdown("---")
+
 def create_detailed_popup(df, dataset_name):
     """Create a detailed popup view for a specific Mondrian map"""
     st.markdown(f"## 🔍 Detailed View: {dataset_name}")
@@ -774,8 +1073,10 @@ def create_detailed_popup(df, dataset_name):
     
     with col1:
         # Show maximized Mondrian map
-        detailed_fig = create_authentic_mondrian_map(df, dataset_name, maximize=True)
-        st.plotly_chart(detailed_fig, use_container_width=True)
+        detailed_fig = create_authentic_mondrian_map(df, dataset_name, maximize=True, show_pathway_ids=True)
+        clicked_data = st.plotly_chart(detailed_fig, use_container_width=True, key=f"detailed_{dataset_name}")
+        
+        st.info("💡 **Click pathway tiles** in the map above to see individual pathway details")
     
     with col2:
         st.markdown("### 📊 Dataset Statistics")
@@ -807,7 +1108,9 @@ def create_detailed_popup(df, dataset_name):
         
         # Top pathways by fold change
         st.markdown("### 🔝 Top Pathways by |FC|")
-        top_pathways = df.nlargest(5, df['wFC'].abs())[['NAME', 'wFC', 'pFDR']]
+        df_with_abs_fc = df.copy()
+        df_with_abs_fc['abs_wFC'] = df_with_abs_fc['wFC'].abs()
+        top_pathways = df_with_abs_fc.nlargest(5, 'abs_wFC')[['NAME', 'wFC', 'pFDR']]
         st.dataframe(top_pathways, use_container_width=True)
 
 # Streamlit App
@@ -870,6 +1173,7 @@ if len(df_list) > 0:
     
     # Display options
     show_legend = st.sidebar.checkbox("Show color legend", True)
+    show_pathway_ids = st.sidebar.checkbox("Show pathway IDs", False, help="Toggle pathway ID labels on tiles")
     show_full_size = st.sidebar.checkbox("Show full-size maps", False)
     maximize_maps = st.sidebar.checkbox("🔍 Maximize individual maps", False, help="Show larger, detailed individual maps")
 
@@ -879,20 +1183,44 @@ if len(df_list) > 0:
     st.subheader("📋 Canvas Grid Overview")
     st.markdown("*Click on individual map titles below to see detailed popup views*")
     
-    canvas_fig = create_canvas_grid(df_list, dataset_names, canvas_rows, canvas_cols)
-    st.plotly_chart(canvas_fig, use_container_width=True)
+    canvas_fig = create_canvas_grid(df_list, dataset_names, canvas_rows, canvas_cols, show_pathway_ids)
     
-    # Add clickable buttons for each dataset
-    st.markdown("### 🖱️ Click for Detailed Views")
+    # Display the canvas with click event handling
+    canvas_container = st.container()
+    with canvas_container:
+        clicked_data = st.plotly_chart(canvas_fig, use_container_width=True, key="canvas_chart", on_select="rerun")
+        
+        # Handle click events to show detailed view
+        if clicked_data and hasattr(clicked_data, 'selection') and clicked_data.selection:
+            selection = clicked_data.selection
+            if 'points' in selection and selection['points']:
+                # Get the clicked point
+                point = selection['points'][0]
+                if 'trace_name' in point:
+                    # Find which dataset this pathway belongs to
+                    pathway_name = point['trace_name']
+                    for df, dataset_name in zip(df_list, dataset_names):
+                        if pathway_name in df['NAME'].values:
+                            st.session_state.show_detailed_view = dataset_name
+                            st.rerun()
+                            break
     
-    # Create buttons for each dataset
-    button_cols = st.columns(len(df_list))
+    # Add clickable functionality info
+    st.markdown("### 🖱️ Interactive Maps")
+    st.info("💡 **Click on any pathway tile** in the maps above to view it in full-screen detail mode")
+    
+    # Session state for managing detailed views
+    if 'show_detailed_view' not in st.session_state:
+        st.session_state.show_detailed_view = None
+    
+    # Check if any detailed view should be shown
     for i, (df, name) in enumerate(zip(df_list, dataset_names)):
-        with button_cols[i]:
-            if st.button(f"🔍 {name}", key=f"popup_{i}", help=f"View detailed {name} map"):
-                # Create popup in expander
-                with st.expander(f"📊 Detailed Analysis: {name}", expanded=True):
-                    create_detailed_popup(df, name)
+        if st.session_state.show_detailed_view == name:
+            st.markdown("---")
+            create_detailed_popup(df, name)
+            if st.button("❌ Close Detailed View", key=f"close_{i}"):
+                st.session_state.show_detailed_view = None
+                st.rerun()
     
     # Full-size individual maps
     if show_full_size:
@@ -904,8 +1232,13 @@ if len(df_list) > 0:
         
         # Create columns for full-size maps
         if len(df_list) == 1:
-            full_fig = create_authentic_mondrian_map(df_list[0], dataset_names[0], maximize=maximize_maps)
-            st.plotly_chart(full_fig, use_container_width=True)
+            full_fig = create_authentic_mondrian_map(df_list[0], dataset_names[0], maximize=maximize_maps, show_pathway_ids=show_pathway_ids)
+            
+            # Add click event handling for single map
+            clicked_data = st.plotly_chart(full_fig, use_container_width=True, key=f"full_map_0")
+            
+            # Show click instructions
+            st.info("💡 **Click on pathway tiles above** to view the dataset in full-screen detail mode")
         else:
             # Show maps in pairs or single column if maximized
             cols_per_row = 1 if maximize_maps else 2
@@ -913,20 +1246,29 @@ if len(df_list) > 0:
             for i in range(0, len(df_list), cols_per_row):
                 if cols_per_row == 1:
                     # Single column for maximized view
-                    full_fig = create_authentic_mondrian_map(df_list[i], dataset_names[i], maximize=maximize_maps)
-                    st.plotly_chart(full_fig, use_container_width=True)
+                    full_fig = create_authentic_mondrian_map(df_list[i], dataset_names[i], maximize=maximize_maps, show_pathway_ids=show_pathway_ids)
+                    clicked_data = st.plotly_chart(full_fig, use_container_width=True, key=f"full_map_{i}")
+                    
+                    # Show click instructions
+                    st.info("💡 **Click pathway tiles** to view in full-screen detail")
                 else:
                     # Two columns for normal view
                     cols = st.columns(2)
                     
                     with cols[0]:
-                        full_fig = create_authentic_mondrian_map(df_list[i], dataset_names[i], maximize=maximize_maps)
-                        st.plotly_chart(full_fig, use_container_width=True)
+                        full_fig = create_authentic_mondrian_map(df_list[i], dataset_names[i], maximize=maximize_maps, show_pathway_ids=show_pathway_ids)
+                        clicked_data = st.plotly_chart(full_fig, use_container_width=True, key=f"full_map_{i}")
+                        
+                        # Show click instructions
+                        st.info("💡 **Click tiles** for details")
                     
                     if i + 1 < len(df_list):
                         with cols[1]:
-                            full_fig = create_authentic_mondrian_map(df_list[i + 1], dataset_names[i + 1], maximize=maximize_maps)
-                            st.plotly_chart(full_fig, use_container_width=True)
+                            full_fig = create_authentic_mondrian_map(df_list[i + 1], dataset_names[i + 1], maximize=maximize_maps, show_pathway_ids=show_pathway_ids)
+                            clicked_data = st.plotly_chart(full_fig, use_container_width=True, key=f"full_map_{i+1}")
+                            
+                            # Show click instructions
+                            st.info("💡 **Click tiles** for details")
     
     # Color legend and info
     if show_legend:
