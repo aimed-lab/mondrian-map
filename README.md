@@ -24,6 +24,9 @@ This repository contains supplementary file, codebase and data generated for our
 ## Results
 ![Results](figures/results.png)
 
+## Web Application Canvas Grid
+![Canvas Grid](figures/canvas_grid_example.png)
+
 ## Cite Us
 
 If you find out tool useful, cite our [latest preprint](https://www.biorxiv.org/content/10.1101/2024.04.11.589093v2).
@@ -44,7 +47,22 @@ If you find out tool useful, cite our [latest preprint](https://www.biorxiv.org/
 
 ## Release Notes
 
-### Version 1.1 (December 14, 2025)
+### Version 1.12 (June 14, 2025)
+
+**Security Updates & Bug Fixes:**
+- 🔒 **Critical Security Updates**: Updated urllib3, requests, certifi, Jinja2, pillow to latest secure versions
+- 🐛 **Bug Fixes**: Resolved UnboundLocalError in canvas grid function and pandas KeyError in detailed popup
+- 📦 **Minimal Requirements**: Added `requirements_minimal.txt` for secure production deployments
+- 📋 **Documentation**: Added comprehensive security update documentation
+- ⚡ **Performance**: Updated pandas and plotly to latest versions for improved performance
+
+**Technical Improvements:**
+- Fixed function parameter bug causing canvas grid rendering issues
+- Resolved pandas DataFrame column access errors in detailed statistics
+- Enhanced dependency management with minimal requirements file
+- Added comprehensive security update tracking and documentation
+
+### Version 1.1 (June 14, 2025)
 
 **Major Features Added:**
 - 🎨 **Complete Authentic Mondrian Algorithm**: Faithful implementation of the exact algorithm from the bioRxiv paper
