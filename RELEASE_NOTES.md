@@ -1,5 +1,125 @@
 # Release Notes - Mondrian Map Explorer
 
+## Version 1.11.0 (December 14, 2025)
+
+### 🎨 Enhanced Grid Lines & Authentic Mondrian Aesthetics
+
+This release significantly improves the visual authenticity and user experience of the Mondrian Map Explorer with smart grid line management, enhanced interactivity, and refined UI elements.
+
+---
+
+## 🆕 New Features
+
+### 🎯 Smart Grid Line System
+- **Authentic Mondrian Principles**: Implemented intelligent grid line management following true Mondrian aesthetics
+- **Intersection Avoidance**: Grid lines automatically avoid intersecting pathway tile interiors
+- **Structural Purpose Only**: Lines only exist where they serve meaningful structural purposes
+- **Smart Start/End Points**: Lines can start/end at canvas boundaries OR closest tile edges
+- **Light Gray Styling**: All grid lines use light gray color (`#D3D3D3`) for subtle appearance
+- **Minimum Segment Length**: Only substantial segments (>40px) are kept to avoid visual clutter
+
+### 🏷️ Pathway ID Management
+- **Toggle Control**: Added sidebar checkbox to show/hide pathway ID labels
+- **Default Off**: Pathway IDs are now hidden by default for cleaner small-view appearance
+- **Regular Font**: Changed from bold "Arial Black" to regular "Arial" font for better readability
+- **Universal Control**: Toggle works across all visualization modes (canvas, full-size, detailed views)
+
+### 🖱️ Enhanced Click Functionality
+- **Direct Tile Interaction**: Click directly on pathway tiles (no separate buttons needed)
+- **Full-Screen Activation**: Clicking any tile automatically opens full-screen detailed view of the entire dataset
+- **Simplified Hover**: Hover shows pathway name + "Click for full-screen view" hint
+- **Session State Management**: Proper state tracking for detailed view navigation
+- **Close Button**: Easy "❌ Close Detailed View" button to return to overview
+
+### 🔗 Improved Connecting Lines
+- **Enhanced Visibility**: Colored Manhattan relationship lines now use 2pt thickness (vs 1pt grid lines)
+- **Better Contrast**: Relationship lines stand out more prominently from background grid
+- **Maintained Colors**: Red, blue, and yellow connecting lines preserve their biological meaning
+
+---
+
+## 🔧 Technical Improvements
+
+### Grid Line Algorithm
+- **`create_smart_grid_lines()`**: New intelligent grid line generation system
+- **`get_meaningful_tile_edges()`**: Identifies structurally important tile boundaries
+- **`find_structural_*_segments()`**: Creates line segments only where needed
+- **`has_structural_purpose_*()`**: Validates that each line segment serves a real purpose
+- **Intersection Detection**: Advanced logic to detect and avoid tile interior intersections
+
+### User Interface Enhancements
+- **Streamlined Navigation**: Removed example buttons in favor of direct interaction
+- **Consistent Styling**: Unified toggle control across all map views
+- **Responsive Design**: Better handling of different screen sizes and viewing modes
+- **Clean Aesthetics**: Reduced visual clutter while maintaining functionality
+
+### Bug Fixes
+- **KeyError Resolution**: Fixed pandas `nlargest()` function error in detailed popup
+- **State Management**: Improved session state handling for detailed views
+- **Font Consistency**: Standardized font usage across all text elements
+- **Click Detection**: Enhanced click event handling with proper rerun triggers
+
+---
+
+## 🎨 Visual Improvements
+
+### Authentic Mondrian Appearance
+- **Minimal Grid Lines**: Only essential structural lines remain visible
+- **No Tile Borders**: Seamless tile appearance with matching border colors
+- **Clean Composition**: Follows authentic Mondrian principles of minimal, purposeful elements
+- **Professional Look**: Reduced visual noise while maintaining scientific accuracy
+
+### Enhanced Interactivity
+- **Intuitive Clicks**: Direct interaction with visualization elements
+- **Clear Feedback**: Immediate visual feedback for user actions
+- **Smooth Transitions**: Proper state management for view changes
+- **Contextual Hints**: Helpful hover messages guide user interaction
+
+---
+
+## 🔄 Migration from Version 1.1.0
+
+### What's Changed
+- **Grid Line Behavior**: Much cleaner, more authentic Mondrian appearance
+- **Pathway ID Display**: Now hidden by default, can be toggled on/off
+- **Click Interaction**: Direct tile clicking replaces separate example buttons
+- **Line Thickness**: Relationship lines are now more prominent
+
+### Backward Compatibility
+- **Data Format**: Fully compatible with existing datasets
+- **Core Functionality**: All analysis features preserved and enhanced
+- **Configuration**: Previous settings work with new toggle controls
+
+---
+
+## 🐛 Bug Fixes
+
+### Critical Fixes
+- **Pandas KeyError**: Resolved `df.nlargest(5, df['wFC'].abs())` error by creating temporary column
+- **Session State**: Fixed state management issues in detailed view navigation
+- **Click Detection**: Improved click event handling and response
+
+### Visual Fixes
+- **Grid Line Positioning**: Proper alignment with tile boundaries
+- **Font Rendering**: Consistent font styling across all text elements
+- **Hover Tooltips**: Simplified and more informative hover messages
+
+---
+
+## 📋 Usage Notes
+
+### New Controls
+- **Pathway ID Toggle**: Use sidebar checkbox "Show pathway IDs" to control label visibility
+- **Direct Clicking**: Click any pathway tile to open full-screen detailed analysis
+- **Close Detailed View**: Use "❌ Close Detailed View" button to return to overview
+
+### Best Practices
+- **Small Views**: Keep pathway IDs off for cleaner appearance in canvas grid
+- **Large Views**: Turn pathway IDs on for detailed analysis and identification
+- **Navigation**: Use direct tile clicking for fastest access to detailed views
+
+---
+
 ## Version 1.1.0 (December 14, 2025)
 
 ### 🎉 Major Release: Authentic Mondrian Map Web Application
