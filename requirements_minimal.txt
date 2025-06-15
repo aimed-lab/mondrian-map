@@ -1,0 +1,25 @@
+# Minimal requirements for Mondrian Map Explorer Streamlit App
+# Core dependencies with latest secure versions
+
+# Web framework
+streamlit>=1.45.0
+
+# Data processing
+pandas>=2.3.0
+numpy>=2.0.0
+
+# Visualization
+plotly>=6.1.0
+
+# Standard library enhancements
+pathlib2>=2.3.7; python_version<"3.4"
+
+# Security updates for critical vulnerabilities
+urllib3>=2.4.0
+requests>=2.32.4
+certifi>=2025.4.26
+Jinja2>=3.1.6
+pillow>=11.2.1
+
+# Optional: For better performance
+pyarrow>=20.0.0 

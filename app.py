@@ -902,7 +902,7 @@ def create_canvas_grid(df_list, dataset_names, canvas_rows, canvas_cols, show_pa
         col = idx % canvas_cols + 1
         
         # Create individual Mondrian map for this dataset
-        mondrian_fig = create_authentic_mondrian_map(df, name, maximize=False, show_pathway_ids=show_pathway_ids)
+        mondrian_fig = create_authentic_mondrian_map(df, name, mem_df=None, maximize=False, show_pathway_ids=show_pathway_ids)
         
         # Add traces to subplot
         for trace in mondrian_fig.data:
