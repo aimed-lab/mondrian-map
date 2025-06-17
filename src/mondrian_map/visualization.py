@@ -148,19 +148,189 @@ def get_manhattan_lines_2(corner_a: Corner, corner_b: Corner, connector: Point, 
     return [line_a, line_b]
 
 def create_smart_grid_lines(grid_system: GridSystem, blocks: List[Block]) -> List[Line]:
-    """Create smart grid lines following authentic Mondrian principles"""
+    """
+    Two-step grid line algorithm:
+    1. Create full Manhattan grid
+    2. Remove lines that go canvas edge to edge without hitting tile corners
+    3. Trim line segments that cross tile middles, stopping at tile corners
+    """
     smart_lines = []
     
-    # Get all meaningful tile boundaries and their positions
-    tile_edges = get_meaningful_tile_edges(blocks)
+    # Get all tile corner positions
+    tile_corners = set()
+    for block in blocks:
+        tile_corners.add((block.top_left_p[0], block.top_left_p[1]))      # top-left
+        tile_corners.add((block.bottom_right_p[0], block.top_left_p[1]))  # top-right
+        tile_corners.add((block.top_left_p[0], block.bottom_right_p[1]))  # bottom-left
+        tile_corners.add((block.bottom_right_p[0], block.bottom_right_p[1])) # bottom-right
     
-    # Create vertical lines that connect meaningful points
-    vertical_lines = create_meaningful_vertical_lines(grid_system, blocks, tile_edges)
-    smart_lines.extend(vertical_lines)
+    # Get all unique x and y positions from corners
+    x_positions = set(corner[0] for corner in tile_corners)
+    y_positions = set(corner[1] for corner in tile_corners)
     
-    # Create horizontal lines that connect meaningful points  
-    horizontal_lines = create_meaningful_horizontal_lines(grid_system, blocks, tile_edges)
-    smart_lines.extend(horizontal_lines)
+    # STEP 1: Create full Manhattan grid lines
+    full_grid_lines = []
+    
+    # Create full vertical lines
+    for x_pos in x_positions:
+        if 0 < x_pos < 1000:  # Skip canvas boundaries
+            full_grid_lines.append({
+                'type': 'vertical',
+                'position': x_pos,
+                'start': 0,
+                'end': 1000
+            })
+    
+    # Create full horizontal lines  
+    for y_pos in y_positions:
+        if 0 < y_pos < 1000:  # Skip canvas boundaries
+            full_grid_lines.append({
+                'type': 'horizontal', 
+                'position': y_pos,
+                'start': 0,
+                'end': 1000
+            })
+    
+    # STEP 2: Remove lines that go canvas edge to edge without hitting tile corners
+    valid_lines = []
+    for line in full_grid_lines:
+        hits_corner = False
+        
+        if line['type'] == 'vertical':
+            x_pos = line['position']
+            # Check if this vertical line hits any tile corner
+            for corner_x, corner_y in tile_corners:
+                if corner_x == x_pos:
+                    hits_corner = True
+                    break
+        else:  # horizontal
+            y_pos = line['position']
+            # Check if this horizontal line hits any tile corner
+            for corner_x, corner_y in tile_corners:
+                if corner_y == y_pos:
+                    hits_corner = True
+                    break
+        
+        if hits_corner:
+            valid_lines.append(line)
+    
+    # STEP 3: Create line segments from canvas edge to tile borders (stop at first tile encounter)
+    for line in valid_lines:
+        if line['type'] == 'vertical':
+            x_pos = line['position']
+            
+            # Find all tile boundaries that this vertical line would encounter
+            tile_boundaries = []
+            for block in blocks:
+                if block.top_left_p[0] <= x_pos <= block.bottom_right_p[0]:
+                    tile_boundaries.append((block.top_left_p[1], block.bottom_right_p[1], 'tile'))
+            
+            # Sort boundaries by y position
+            tile_boundaries.sort()
+            
+            # Create line from top canvas edge to first tile boundary
+            if tile_boundaries:
+                first_tile_top = tile_boundaries[0][0]
+                if first_tile_top > 0:
+                    smart_lines.append(Line(
+                        Point(x_pos, 0), 
+                        Point(x_pos, first_tile_top), 
+                        LineDir.DOWN, 
+                        Colors.LIGHT_GRAY, 
+                        1
+                    ))
+                
+                # Create lines between tiles (in gaps)
+                for i in range(len(tile_boundaries) - 1):
+                    gap_start = tile_boundaries[i][1]  # End of current tile
+                    gap_end = tile_boundaries[i + 1][0]  # Start of next tile
+                    
+                    if gap_end - gap_start > 10:  # Minimum gap size
+                        smart_lines.append(Line(
+                            Point(x_pos, gap_start), 
+                            Point(x_pos, gap_end), 
+                            LineDir.DOWN, 
+                            Colors.LIGHT_GRAY, 
+                            1
+                        ))
+                
+                # Create line from last tile boundary to bottom canvas edge
+                last_tile_bottom = tile_boundaries[-1][1]
+                if last_tile_bottom < 1000:
+                    smart_lines.append(Line(
+                        Point(x_pos, last_tile_bottom), 
+                        Point(x_pos, 1000), 
+                        LineDir.DOWN, 
+                        Colors.LIGHT_GRAY, 
+                        1
+                    ))
+            else:
+                # No tiles intersect this line, draw full line
+                smart_lines.append(Line(
+                    Point(x_pos, 0), 
+                    Point(x_pos, 1000), 
+                    LineDir.DOWN, 
+                    Colors.LIGHT_GRAY, 
+                    1
+                ))
+        
+        else:  # horizontal line
+            y_pos = line['position']
+            
+            # Find all tile boundaries that this horizontal line would encounter
+            tile_boundaries = []
+            for block in blocks:
+                if block.top_left_p[1] <= y_pos <= block.bottom_right_p[1]:
+                    tile_boundaries.append((block.top_left_p[0], block.bottom_right_p[0], 'tile'))
+            
+            # Sort boundaries by x position
+            tile_boundaries.sort()
+            
+            # Create line from left canvas edge to first tile boundary
+            if tile_boundaries:
+                first_tile_left = tile_boundaries[0][0]
+                if first_tile_left > 0:
+                    smart_lines.append(Line(
+                        Point(0, y_pos), 
+                        Point(first_tile_left, y_pos), 
+                        LineDir.RIGHT, 
+                        Colors.LIGHT_GRAY, 
+                        1
+                    ))
+                
+                # Create lines between tiles (in gaps)
+                for i in range(len(tile_boundaries) - 1):
+                    gap_start = tile_boundaries[i][1]  # End of current tile
+                    gap_end = tile_boundaries[i + 1][0]  # Start of next tile
+                    
+                    if gap_end - gap_start > 10:  # Minimum gap size
+                        smart_lines.append(Line(
+                            Point(gap_start, y_pos), 
+                            Point(gap_end, y_pos), 
+                            LineDir.RIGHT, 
+                            Colors.LIGHT_GRAY, 
+                            1
+                        ))
+                
+                # Create line from last tile boundary to right canvas edge
+                last_tile_right = tile_boundaries[-1][1]
+                if last_tile_right < 1000:
+                    smart_lines.append(Line(
+                        Point(last_tile_right, y_pos), 
+                        Point(1000, y_pos), 
+                        LineDir.RIGHT, 
+                        Colors.LIGHT_GRAY, 
+                        1
+                    ))
+            else:
+                # No tiles intersect this line, draw full line
+                smart_lines.append(Line(
+                    Point(0, y_pos), 
+                    Point(1000, y_pos), 
+                    LineDir.RIGHT, 
+                    Colors.LIGHT_GRAY, 
+                    1
+                ))
     
     return smart_lines
 
@@ -416,6 +586,46 @@ def create_authentic_mondrian_map(df: pd.DataFrame, dataset_name: str,
         b = Block(rect[0], rect[1], areas_sorted[idx], colors_sorted[idx], pathway_ids_sorted[idx])
         all_blocks.append(b)
     
+    # Create smart grid lines that avoid intersecting tiles (after blocks are created)
+    smart_grid_lines = create_smart_grid_lines(grid_system, all_blocks)
+
+    # STAGE 2: Create relationship lines (Manhattan lines for PAG-to-PAG crosstalk)
+    all_manhattan_lines = []
+    lines_to_extend = []
+    for rel in relations:
+        if rel[0] in Block.instances.keys() and rel[1] in Block.instances.keys():
+            s = Block.instances[rel[0]]
+            b = Block.instances[rel[1]]
+        else:
+            continue
+        
+        manhattan_line_color = get_manhattan_line_color(s, b)
+
+        cp1 = get_closest_corner(s, b)
+        cp2 = None
+        dist = float('inf')
+
+        for corner in [b.top_left, b.top_right, b.bottom_left, b.bottom_right]:
+            if (s.top_left.point.x > corner.point.x or s.top_right.point.x < corner.point.x) and (s.top_left.point.y > corner.point.y or s.bottom_left.point.y < corner.point.y):
+                d = euclidean_distance_point((s.center.x, s.center.y), (corner.point.x, corner.point.y))
+                if d < dist:
+                    cp2 = corner
+                    dist = d
+        if cp2 == None:
+            cp2 = get_closest_corner(b, s)
+            con = get_furthest_connector(cp1, cp2, s.center)
+        else:
+            con = get_furthest_connector(cp1, cp2, b.center)
+
+        lines = get_manhattan_lines_2(cp1, cp2, con, manhattan_line_color)
+
+        if len(lines) == 1:
+            all_manhattan_lines.append(lines[0])
+
+        if len(lines) == 2:
+            all_manhattan_lines.extend(lines)
+            lines_to_extend.extend(lines)
+    
     # Convert to Plotly traces
     traces = []
     
@@ -437,27 +647,25 @@ def create_authentic_mondrian_map(df: pd.DataFrame, dataset_name: str,
             y=y_coords,
             fill="toself",
             fillcolor=fill_color,
-            line=dict(width=0, color=fill_color),
+            line=dict(width=0),
             mode="lines",
-            hovertemplate=f"<b>{pathway_row['NAME']}</b><br><i>Click for details</i><extra></extra>",
+            hoverinfo='none',
+            name="",
             showlegend=False,
-            name=pathway_row['NAME']
+            customdata=None,
+            meta={'dataset': dataset_name, 'pathway_id': pathway_row['GS_ID']}
         ))
-        
-        # Add pathway ID text if enabled
-        if show_pathway_ids:
-            center_x = (block.top_left_p[0] + block.bottom_right_p[0]) / 2
-            center_y = (block.top_left_p[1] + block.bottom_right_p[1]) / 2
-            
-            traces.append(go.Scatter(
-                x=[center_x],
-                y=[center_y],
-                mode="text",
-                text=[block.id],
-                textfont=dict(size=12, color="white"),
-                showlegend=False,
-                hoverinfo='skip'
-            ))
+
+    # Add smart grid lines (lightest gray, thin lines)
+    for line in smart_grid_lines:
+        traces.append(go.Scatter(
+            x=[line.point_a.x, line.point_b.x],
+            y=[line.point_a.y, line.point_b.y],
+            mode="lines",
+            line=dict(color="#F5F5F5", width=1),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
 
     # Add canvas border lines
     border_lines = [line for line in Line.instances if line.strength == THIN_LINE_WIDTH]
@@ -468,6 +676,18 @@ def create_authentic_mondrian_map(df: pd.DataFrame, dataset_name: str,
             y=[line.point_a.y, line.point_b.y],
             mode="lines",
             line=dict(color="#808080", width=2),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+
+    # Add Manhattan relationship lines (PAG-to-PAG crosstalk)
+    for line in all_manhattan_lines:
+        line_color = str(line.color.value) if hasattr(line.color, 'value') else str(line.color)
+        traces.append(go.Scatter(
+            x=[line.point_a.x, line.point_b.x],
+            y=[line.point_a.y, line.point_b.y],
+            mode="lines",
+            line=dict(color=line_color, width=2),
             showlegend=False,
             hoverinfo='skip'
         ))
@@ -496,7 +716,9 @@ def create_authentic_mondrian_map(df: pd.DataFrame, dataset_name: str,
         height=height,
         width=width,
         showlegend=False,
-        margin=dict(l=20, r=20, t=60, b=20)
+        margin=dict(l=20, r=20, t=60, b=20),
+        clickmode='event+select',
+        hovermode=False  # Final, definitive hover disabling
     )
     
     return fig
@@ -548,7 +770,8 @@ def create_canvas_grid(df_list: List[pd.DataFrame], dataset_names: List[str],
         plot_bgcolor='white',
         height=200 * canvas_rows + 100,
         width=1200,
-        margin=dict(l=50, r=50, t=100, b=50)
+        margin=dict(l=50, r=50, t=100, b=50),
+        hovermode=False  # Disable hover completely
     )
     
     return fig
@@ -590,7 +813,8 @@ def create_color_legend() -> go.Figure:
         height=300,
         width=400,
         title="Mondrian Color Scheme",
-        margin=dict(l=10, r=10, t=40, b=10)
+        margin=dict(l=10, r=10, t=40, b=10),
+        hovermode=False  # Disable hover completely
     )
     
     return fig 

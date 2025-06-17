@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](docs/releases/RELEASE_NOTES.md)
 
 **Authentic implementation of Mondrian Maps for biological pathway visualization**
 
@@ -47,7 +48,6 @@ mondrian-map/
 │   └── data_preperation.ipynb
 ├── ⚙️ config/                  # Configuration files
 │   ├── requirements.txt        # Python dependencies
-│   ├── Procfile               # Deployment config
 │   └── runtime.txt            # Python version
 ├── 🚢 deployment/             # Deployment guides
 ├── 📚 docs/                   # Documentation
@@ -67,12 +67,15 @@ mondrian-map/
 - **Smart Grid Lines**: Structural lines that avoid intersecting tiles
 - **Interactive Canvas**: Click tiles for detailed pathway information
 - **Multi-Dataset Support**: Compare multiple conditions side-by-side
+- **Enhanced Tooltips**: Improved hover and click interactions
+- **Session State Management**: Persistent user interactions
 
 ### 📊 Data Processing
 - **Flexible Input**: CSV files with pathway data
 - **Rich Annotations**: Pathway descriptions, ontologies, disease associations
 - **Network Analysis**: Pathway crosstalk visualization
 - **Statistical Summaries**: Regulation statistics and significance testing
+- **Input Validation**: Secure data processing
 
 ## 🧬 Algorithm Details
 
@@ -156,7 +159,18 @@ python -c "from src.mondrian_map.core import GridSystem; print('✅ Core module 
 - **[Algorithm Details](docs/FIGURE_NOTE.md)** - Technical implementation details
 - **[Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)** - How to deploy the app
 - **[Troubleshooting](deployment/DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and solutions
-- **[Release Notes](deployment/RELEASE_NOTES.md)** - Version history and changes
+- **[Release Notes](docs/releases/RELEASE_NOTES.md)** - Version history and changes
+
+## 🔄 Recent Updates
+
+### Version 1.1.0 (2024-06-17)
+- Enhanced interactive visualization with improved tooltip handling
+- Added session state management for better user experience
+- Implemented click interactions for pathway information display
+- Fixed various bugs and security vulnerabilities
+- Improved project structure and documentation
+
+For a complete list of changes, see [RELEASE_NOTES.md](docs/releases/RELEASE_NOTES.md).
 
 ## 🤝 Contributing
 
@@ -201,4 +215,4 @@ If you use this tool in your research, please cite:
 
 ---
 
-**Made with ❤️ for the bioinformatics community** 
+**Made with ❤️ for the bioinformatics community**

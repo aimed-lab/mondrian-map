@@ -167,27 +167,34 @@ class GridSystem:
             self.grid_lines_v[f'v{i}'] = i * block_width
 
     def fill_blocks_around_point(self, point: Tuple[float, float], target_area: float) -> Tuple[List[Tuple[float, float]], float]:
-        """Fill blocks around a point based on target area"""
+        """
+        Creates a rectangle centered precisely on the given point (x, y)
+        with an area as close as possible to the target_area.
+        The rectangle's dimensions (width/height) are proportional to maintain a squarish shape.
+        """
         x, y = point
         
-        # Calculate the number of blocks to be filled based on the target area
-        nob = max(1, round(target_area / (self.block_width * self.block_height)))
-        num_rows, num_columns = self.approximate_grid_layout(nob)
+        # Calculate width and height from area, maintaining a ~4:3 aspect ratio for aesthetics
+        # This ratio can be adjusted if needed. The key is that width * height = target_area
+        aspect_ratio = 4 / 3 
+        height = math.sqrt(target_area / aspect_ratio)
+        width = aspect_ratio * height
 
-        area_diff = abs(target_area - nob * self.block_width * self.block_height)
-
-        # Adjust the starting block to ensure the point is in the center
-        start_block_h = max(int(y // self.block_height - num_rows // 2), 1)
-        start_block_v = max(int(x // self.block_width - num_columns // 2), 1)
-
-        start_block_h = min(start_block_h, len(self.grid_lines_h.keys()) - num_rows)
-        start_block_v = min(start_block_v, len(self.grid_lines_v.keys()) - num_columns)
-
-        # Calculate the coordinates for the single rectangle around the point
-        top_left_x = self.grid_lines_v[f'v{start_block_v}']
-        top_left_y = self.grid_lines_h[f'h{start_block_h}']
-        bottom_right_x = self.grid_lines_v[f'v{start_block_v + num_columns - 1}'] + self.block_width
-        bottom_right_y = self.grid_lines_h[f'h{start_block_h + num_rows - 1}'] + self.block_height
+        # Calculate top-left and bottom-right coordinates so (x, y) is the exact center
+        top_left_x = x - width / 2
+        top_left_y = y - height / 2
+        bottom_right_x = x + width / 2
+        bottom_right_y = y + height / 2
+        
+        # Ensure coordinates are within canvas bounds (0 to 1000)
+        top_left_x = max(0, top_left_x)
+        top_left_y = max(0, top_left_y)
+        bottom_right_x = min(self.width, bottom_right_x)
+        bottom_right_y = min(self.height, bottom_right_y)
+        
+        # The actual area might differ slightly due to snapping to bounds
+        actual_area = (bottom_right_x - top_left_x) * (bottom_right_y - top_left_y)
+        area_diff = abs(target_area - actual_area)
 
         return [(top_left_x, top_left_y), (bottom_right_x, bottom_right_y)], area_diff
 

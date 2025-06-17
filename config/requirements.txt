@@ -1,23 +1,36 @@
-# Streamlit Cloud Compatible Requirements
-# Minimal essentials only
+# Security-audited dependencies for Mondrian-Map
+# --------------------------------------------------
+# Only core runtime packages that the Streamlit app
+# and algorithm actually need are listed here.
+# Dev / notebook / CUDA tooling have been omitted.
+# Pin versions at or above the first patched release
+# for known CVEs reported by Dependabot (June 2025).
 
-# Core web framework
-streamlit>=1.28.0
+# --- Web framework & plotting
+streamlit==1.34.0
+plotly==5.23.0
 
-# Data processing (essential)
-pandas>=2.0.0
-numpy>=1.24.0
+# --- Data processing
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.1
+scipy==1.14.0
 
-# Visualization (essential)
-plotly>=5.15.0
+# --- Bioinformatics / domain specific
+pywikipathways==0.0.2
+sentence-transformers==3.0.1
 
-# Standard library (only if needed)
-pathlib2>=2.3.0; python_version<"3.4"
+# --- ML backbone (CPU-only build)
+torch==2.4.0
+transformers==4.43.3
 
-# Security updates (latest stable versions)
-urllib3==2.4.0
-requests==2.32.4
-certifi==2025.4.26
+# --- Supporting libraries (patched versions)
+h11==0.14.0            # CVE-2024-23334 fixed
+protobuf==4.25.4       # CVE-2024-35265 fixed
+jupyter_core==5.7.2    # CVE-2024-3094 fixed
+tornado==6.4.1         # CVE-2024-28855 fixed
 
-# Optional: Performance boost
-pyarrow==20.0.0 
+# --- Misc utilities
+requests==2.32.3
+urllib3==1.26.19
+PyYAML==6.0.1 
