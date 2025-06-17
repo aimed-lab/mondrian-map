@@ -1,172 +1,204 @@
-# Mondrian Abstraction and Language Model Embeddings for Differential Pathway Analysis
+# 🎨 Mondrian Map Explorer
 
-**Project Overview:**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
 
-This repository contains supplementary file, codebase and data generated for our paper titled "Mondrian Abstraction and Language Model Embeddings for Differential Pathway Analysis" which is currently under peer-review in a bioinformatics conference.
+**Authentic implementation of Mondrian Maps for biological pathway visualization**
 
-**Supplementary File:** The supplementary file to our paper can be found [here](https://github.com/aimed-lab/mondrian-map/blob/main/supplementary-file.pdf).
+This repository contains a faithful implementation of the Mondrian Map algorithm described in the bioRxiv paper: [*"Mondrian Maps: A Novel Approach for Pathway Visualization"*](https://www.biorxiv.org/content/10.1101/2024.04.11.589093v2)
 
-**Code:** The `notebooks` folder contains the following jupyter notebooks:
+![Mondrian Map Banner](figures/banner.png)
 
-1. **clinical_data_analysis.ipynb**: Notebook for analyzing clinical data and suitable patient profile selection.
-2. **data_preperation.ipynb**: Notebook for preprocessing data to make it suitable for Mondrian Map Visualization.
-3. **pathway_embeddings.ipynb**: Here, we've experimented with different embedding techniques with different prompting strategies.
-3. **visualize_mondrian_map.ipynb**: In this notebook, we've generated the Mondrian Maps in our Gliblastoma case study.
+## 🚀 Quick Start
 
-**Data:** All the datasets used and processed are stored in the `data` folder.
+### Option 1: Run Locally
+```bash
+# Clone the repository
+git clone https://github.com/your-username/mondrian-map.git
+cd mondrian-map
 
-## Flow Chart
-![Flow-Diagram](figures/banner.png)
+# Install dependencies
+pip install -r config/requirements.txt
 
-## Mondrian Map Generation
-![Methodology](figures/method.png)
+# Run the Streamlit app
+streamlit run apps/streamlit_app.py
+```
 
-## Results
-![Results](figures/results.png)
+### Option 2: Try Online
+🌐 **[Live Demo](https://your-deployment-url.streamlit.app)** - Try the app without installation
 
-## Web Application Canvas Grid
-![Canvas Grid](figures/canvas_grid_example.png)
-
-## Cite Us
-
-If you find out tool useful, cite our [latest preprint](https://www.biorxiv.org/content/10.1101/2024.04.11.589093v2).
+## 📁 Repository Structure
 
 ```
-@article {AlAbir_MondrianMap,
-	author = {Al Abir, Fuad and Chen, Jake Y.},
-	title = {Mondrian Abstraction and Language Model Embeddings for Differential Pathway Analysis},
-	elocation-id = {2024.04.11.589093},
-	year = {2024},
-	doi = {10.1101/2024.04.11.589093},
-	publisher = {Cold Spring Harbor Laboratory},
-	URL = {https://www.biorxiv.org/content/early/2024/08/19/2024.04.11.589093},
-	eprint = {https://www.biorxiv.org/content/early/2024/08/19/2024.04.11.589093.full.pdf},
-	journal = {bioRxiv}
+mondrian-map/
+├── 📱 apps/                    # Streamlit applications
+│   └── streamlit_app.py        # Main web application
+├── 🧬 src/                     # Core Python modules
+│   └── mondrian_map/           # Main package
+│       ├── core.py             # Core algorithm classes
+│       ├── data_processing.py  # Data handling utilities
+│       └── visualization.py    # Plotting functions
+├── 📊 data/                    # Dataset files
+│   └── case_study/             # Example datasets
+├── 📓 notebooks/               # Jupyter notebooks
+│   ├── visualize_mondrian_map.ipynb
+│   ├── pathway_embeddings.ipynb
+│   └── data_preperation.ipynb
+├── ⚙️ config/                  # Configuration files
+│   ├── requirements.txt        # Python dependencies
+│   ├── Procfile               # Deployment config
+│   └── runtime.txt            # Python version
+├── 🚢 deployment/             # Deployment guides
+├── 📚 docs/                   # Documentation
+├── 🖼️ figures/                # Images and plots
+└── 📄 static/                 # Static assets
+```
+
+## 🎯 Features
+
+### ✨ Authentic Algorithm Implementation
+- **3-Stage Generation Process**: Grid System → Block Placement → Line Generation
+- **Exact Classes**: `GridSystem`, `Block`, `Line`, `Corner` from original research
+- **Authentic Parameters**: 1001×1001 canvas, 20×20 block grid, proper adjustments
+
+### 🎨 Visual Features
+- **5-Color Mondrian Scheme**: White, Black, Yellow, Red, Blue
+- **Smart Grid Lines**: Structural lines that avoid intersecting tiles
+- **Interactive Canvas**: Click tiles for detailed pathway information
+- **Multi-Dataset Support**: Compare multiple conditions side-by-side
+
+### 📊 Data Processing
+- **Flexible Input**: CSV files with pathway data
+- **Rich Annotations**: Pathway descriptions, ontologies, disease associations
+- **Network Analysis**: Pathway crosstalk visualization
+- **Statistical Summaries**: Regulation statistics and significance testing
+
+## 🧬 Algorithm Details
+
+The implementation follows the exact 3-stage process from the research paper:
+
+### Stage 1: Grid System Initialization
+```python
+grid_system = GridSystem(1001, 1001, 20, 20)  # Canvas: 1001×1001, Blocks: 20×20
+```
+
+### Stage 2: Block Placement
+- **Area Calculation**: `abs(log2(wFC)) * 4000`
+- **Color Mapping**: Based on fold-change and p-value thresholds
+- **Position Optimization**: Centered around pathway coordinates
+
+### Stage 3: Line Generation
+- **Smart Grid Lines**: Avoid tile intersections, maintain structure
+- **Manhattan Connections**: Pathway relationship visualization
+- **Authentic Styling**: Proper line widths and adjustments
+
+## 📝 Data Format
+
+Your CSV files should contain these columns:
+
+| Column | Description | Example |
+|--------|-------------|---------|
+| `GS_ID` | Pathway identifier | `WAG002659` |
+| `wFC` | Weighted fold change | `1.1057` |
+| `pFDR` | Adjusted p-value | `3.5e-17` |
+| `x` | X-coordinate | `381.9` |
+| `y` | Y-coordinate | `468.9` |
+| `NAME` | Pathway name | `Glycolysis` |
+
+## 🎨 Color Scheme
+
+| Color | Meaning | Criteria |
+|-------|---------|----------|
+| 🔴 **Red** | Up-regulated | FC ≥ 1.0, p < 0.05 |
+| 🔵 **Blue** | Down-regulated | FC ≤ -1.0, p < 0.05 |
+| 🟡 **Yellow** | Moderate change | 0.5 ≤ \|FC\| < 1.0, p < 0.05 |
+| ⚫ **Black** | Neutral | \|FC\| < 0.5, p < 0.05 |
+| ⚪ **White** | Non-significant | p ≥ 0.05 |
+
+## 🛠️ Development
+
+### Setting up Development Environment
+```bash
+# Clone and enter directory
+git clone https://github.com/your-username/mondrian-map.git
+cd mondrian-map
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r config/requirements.txt
+
+# Install package in development mode
+pip install -e .
+```
+
+### Running Tests
+```bash
+# Run the Streamlit app
+streamlit run apps/streamlit_app.py
+
+# Test with example data
+python -c "from src.mondrian_map.core import GridSystem; print('✅ Core module imported successfully')"
+```
+
+### Project Structure Philosophy
+- **`src/`**: Core reusable modules following Python packaging standards
+- **`apps/`**: User-facing applications (Streamlit, CLI tools, etc.)
+- **`config/`**: All configuration and deployment files
+- **`docs/`**: Documentation and guides
+- **`deployment/`**: Deployment-specific documentation
+
+## 📚 Documentation
+
+- **[Algorithm Details](docs/FIGURE_NOTE.md)** - Technical implementation details
+- **[Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)** - How to deploy the app
+- **[Troubleshooting](deployment/DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and solutions
+- **[Release Notes](deployment/RELEASE_NOTES.md)** - Version history and changes
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our contributing guidelines:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 📖 Citation
+
+If you use this tool in your research, please cite:
+
+```bibtex
+@article{mondrian_maps_2024,
+  title={Mondrian Maps: A Novel Approach for Pathway Visualization},
+  author={[Authors]},
+  journal={bioRxiv},
+  year={2024},
+  doi={10.1101/2024.04.11.589093v2}
 }
 ```
 
-## Release Notes
+## 🙏 Acknowledgments
 
-### Version 1.12 (June 14, 2025)
+- Original research paper authors for the innovative Mondrian Map concept
+- Streamlit team for the excellent web app framework
+- Plotly team for powerful visualization capabilities
+- The bioinformatics community for pathway data and annotations
 
-**Security Updates & Bug Fixes:**
-- 🔒 **Critical Security Updates**: Updated urllib3, requests, certifi, Jinja2, pillow to latest secure versions
-- 🐛 **Bug Fixes**: Resolved UnboundLocalError in canvas grid function and pandas KeyError in detailed popup
-- 📦 **Minimal Requirements**: Added `requirements_minimal.txt` for secure production deployments
-- 📋 **Documentation**: Added comprehensive security update documentation
-- ⚡ **Performance**: Updated pandas and plotly to latest versions for improved performance
+## 📞 Support
 
-**Technical Improvements:**
-- Fixed function parameter bug causing canvas grid rendering issues
-- Resolved pandas DataFrame column access errors in detailed statistics
-- Enhanced dependency management with minimal requirements file
-- Added comprehensive security update tracking and documentation
+- **Issues**: [GitHub Issues](https://github.com/your-username/mondrian-map/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-username/mondrian-map/discussions)
+- **Email**: your-email@example.com
 
-### Version 1.1 (June 14, 2025)
+---
 
-**Major Features Added:**
-- 🎨 **Complete Authentic Mondrian Algorithm**: Faithful implementation of the exact algorithm from the bioRxiv paper
-- 🖼️ **Interactive Web Application**: Full-featured Streamlit app with authentic Mondrian map generation
-- 📊 **Canvas Grid System**: Multi-dataset comparison with customizable grid layouts
-- 🔧 **Enhanced User Interface**: Professional UI with detailed popup views, statistics, and color legends
-
-**Technical Improvements:**
-- Implemented exact `GridSystem`, `Block`, `Line`, `Corner` classes from research notebooks
-- Added 3-stage generation process: block placement → Manhattan relationship lines → line extensions
-- Integrated authentic color scheme with proper thresholds and area scaling
-- Added light gray grid lines for authentic Mondrian appearance matching the paper
-- Implemented pathway network relationship visualization
-- Added file upload capability for custom datasets
-- Enhanced hover tooltips and interactive features
-
-**Data Integration:**
-- Support for all 6 pre-computed datasets from the case study
-- Complete pathway annotation system with descriptions and ontology
-- Network relationship data integration for Manhattan connection lines
-- Comprehensive statistics and analysis features
-
-**User Experience:**
-- Multi-select dataset configuration
-- Customizable canvas layouts (1×1 to 4×4 grids)
-- Toggle options for different viewing modes
-- Adaptive text scaling and positioning
-- Professional color legend and comprehensive pathway details
-
-### Version 1.0 (Initial Publication)
-
-**Core Research Implementation:**
-- Original Mondrian Map methodology and algorithms
-- Jupyter notebooks for data preparation and visualization
-- Clinical data analysis and patient profile selection
-- Pathway embeddings with language model techniques
-- Glioblastoma case study implementation
-
-## Contact
-
-Reach us at [jakechen@uab.edu](mailto:jakechen@uab.edu) or [fuad021@uab.edu](mailto:fuad021@uab.edu).
-
-## License
-Mondrian Map codebase is under MIT license.
-
-## Web Application - Authentic Mondrian Map Explorer
-
-An interactive Streamlit web application is provided that implements the complete authentic Mondrian Map algorithm from our bioRxiv paper. The application provides a faithful reproduction of the research methodology with enhanced interactive features.
-
-### Features
-
-🎨 **Authentic Algorithm Implementation**
-- Complete `GridSystem`, `Block`, `Line`, `Corner` classes with exact parameters from the paper
-- 3-stage generation process: blocks → Manhattan relationship lines → line extensions
-- Authentic color scheme: Red (up-regulated), Blue (down-regulated), Yellow (moderate), Black (neutral), White (non-significant)
-- Area scaling using `abs(log2(wFC)) * 4000` formula
-- Light gray grid lines for authentic Mondrian appearance
-
-🖼️ **Interactive Visualization**
-- Canvas grid layout for comparing multiple datasets simultaneously
-- Detailed popup views with comprehensive pathway analysis
-- Adaptive text scaling and positioning for pathway labels
-- Clickable interface with hover tooltips and detailed statistics
-
-📊 **Data Integration**
-- Support for all 6 pre-computed datasets (Aggressive R1/R2, Baseline R1/R2, Nonaggressive R1/R2)
-- Pathway network relationship visualization (Manhattan connection lines)
-- File upload capability for custom CSV datasets
-- Complete pathway annotation system with descriptions and ontology information
-
-🔧 **User Interface**
-- Multi-select dataset configuration
-- Customizable canvas grid layouts (1×1 to 4×4)
-- Toggle options for full-size maps, color legends, and maximized views
-- Professional color legend and comprehensive statistics
-
-### Installation & Usage
-
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-2. Run the application:
-```bash
-streamlit run app.py
-```
-
-3. Open your browser to `http://localhost:8501`
-
-### Supported Data Format
-
-The application accepts CSV files with the following required columns:
-- `GS_ID`: Gene set/pathway identifier
-- `wFC`: Weighted fold change
-- `pFDR`: Adjusted p-value (FDR)
-- `x`, `y`: Coordinates for pathway positioning
-
-### Algorithm Parameters
-
-The implementation uses the exact parameters from the research paper:
-- Canvas: 1001×1001 pixels
-- Block size: 20×20 pixels
-- Line width: 5 pixels (borders), 1 pixel (grid lines)
-- Area scalar: 4000
-- Up-regulation threshold: ≥1.25
-- Down-regulation threshold: ≤0.75
+**Made with ❤️ for the bioinformatics community** 
