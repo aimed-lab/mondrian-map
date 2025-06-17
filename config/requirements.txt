@@ -30,7 +30,13 @@ protobuf==4.25.4       # CVE-2024-35265 fixed
 jupyter_core==5.7.2    # CVE-2024-3094 fixed
 tornado==6.4.1         # CVE-2024-28855 fixed
 
-# --- Misc utilities
+# --- Security & Network
 requests==2.32.3
-urllib3==1.26.19
-PyYAML==6.0.1 
+urllib3==2.2.1         # Updated for OpenSSL compatibility
+certifi==2024.2.2      # Added for SSL certificate verification
+cryptography==42.0.5   # Added for enhanced security
+PyYAML==6.0.1
+
+# --- Input Validation & Sanitization
+python-dotenv==1.0.1   # Added for secure environment variable handling
+validators==0.22.0     # Added for input validation 
