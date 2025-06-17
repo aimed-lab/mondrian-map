@@ -154,8 +154,10 @@ python -c "from src.mondrian_map.core import GridSystem; print('✅ Core module 
 - **`docs/`**: Documentation and guides
 - **`deployment/`**: Deployment-specific documentation
 
-## 📚 Documentation
+## 📖 Documentation
 
+- **[Script Usage Guide](docs/SCRIPT_USAGE.md)** - Comprehensive guide for using the run scripts
+- **[Security Features](docs/SECURITY_FEATURES.md)** - Detailed security documentation
 - **[Algorithm Details](docs/FIGURE_NOTE.md)** - Technical implementation details
 - **[Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)** - How to deploy the app
 - **[Troubleshooting](deployment/DEPLOYMENT_TROUBLESHOOTING.md)** - Common issues and solutions
@@ -212,6 +214,36 @@ If you use this tool in your research, please cite:
 - **Issues**: [GitHub Issues](https://github.com/your-username/mondrian-map/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-username/mondrian-map/discussions)
 - **Email**: your-email@example.com
+
+## 🛠️ Running the App
+
+### Unix/macOS
+To run the app with automatic port management and error handling:
+```bash
+./scripts/run_streamlit.sh
+```
+- Finds an available port
+- Cleans up existing Streamlit processes
+- Checks for Streamlit installation
+
+### Windows
+To run the app on Windows:
+```bat
+scripts\run_streamlit_win.bat
+```
+- Finds an available port
+- Cleans up existing Streamlit processes
+- Checks for Streamlit installation
+
+### Troubleshooting
+- If you see a port conflict, the script will automatically try the next available port.
+- If Streamlit is not installed, you'll get a clear error message with installation instructions.
+- Uploaded files are validated for name, type, and required columns for security.
+
+## 🔒 Security Features
+- File uploads are sanitized and validated (only .csv, safe names, required columns)
+- Input validation is performed on all uploaded data
+- Error handling for missing dependencies and invalid files
 
 ---
 

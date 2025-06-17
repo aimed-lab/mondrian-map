@@ -112,4 +112,22 @@ If you're still having issues:
 3. **Use the backup requirements** files if needed
 4. **Verify all data files** are in the repository
 
-The simplified approach should resolve the dependency conflicts you were experiencing! 
+The simplified approach should resolve the dependency conflicts you were experiencing!
+
+## New Script-Based Launch (v1.1.1)
+
+### Unix/macOS
+- Use `./scripts/run_streamlit.sh` to launch the app
+- Script finds an available port, cleans up old processes, and checks for Streamlit
+
+### Windows
+- Use `scripts\run_streamlit_win.bat` to launch the app
+- Script finds an available port, cleans up old processes, and checks for Streamlit
+
+### Common Issues
+- **Streamlit not installed**: Script will print an error and exit. Run `pip install -r config/requirements.txt`.
+- **Port in use**: Script will try the next available port automatically.
+- **File upload rejected**: Only .csv files with safe names and required columns are accepted. Check your file format.
+
+## Security Improvements
+- File uploads are sanitized and validated for type and columns 

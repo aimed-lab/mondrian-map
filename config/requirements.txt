@@ -32,7 +32,7 @@ tornado==6.4.1         # CVE-2024-28855 fixed
 
 # --- Security & Network
 requests==2.32.3
-urllib3==2.2.1         # Updated for OpenSSL compatibility
+urllib3==1.26.18       # Downgraded for LibreSSL compatibility
 certifi==2024.2.2      # Added for SSL certificate verification
 cryptography==42.0.5   # Added for enhanced security
 PyYAML==6.0.1

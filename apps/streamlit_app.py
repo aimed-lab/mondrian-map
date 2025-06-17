@@ -11,6 +11,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
+import re
 
 # Add the src directory to the path to import our modules
 sys.path.append(str(Path(__file__).parent.parent / "src"))
@@ -371,9 +372,33 @@ def create_detailed_popup(df: pd.DataFrame, dataset_name: str):
         top_pathways = df_with_abs_fc.nlargest(5, 'abs_wFC')[['NAME', 'wFC', 'pFDR']]
         st.dataframe(top_pathways, use_container_width=True)
 
+# Helper function for input validation
+
+def is_valid_csv_file(filename):
+    # Only allow .csv extension and safe characters
+    return bool(re.match(r'^[\w,\s-]+\.csv$', filename))
+
+def validate_csv_columns(df):
+    required_columns = {'GS_ID', 'wFC', 'pFDR', 'x', 'y'}
+    return required_columns.issubset(set(df.columns))
+
 def main():
     """Main Streamlit application"""
     st.set_page_config(page_title="Authentic Mondrian Map Explorer", layout="wide")
+
+    # Initialize all session state variables at the start
+    if 'show_detailed_view' not in st.session_state:
+        st.session_state.show_detailed_view = False
+    if 'selected_pathway' not in st.session_state:
+        st.session_state.selected_pathway = None
+    if 'clicked_pathway_info' not in st.session_state:
+        st.session_state.clicked_pathway_info = None
+    if 'current_dataset' not in st.session_state:
+        st.session_state.current_dataset = None
+    if 'grid_layout' not in st.session_state:
+        st.session_state.grid_layout = None
+    if 'uploaded_files' not in st.session_state:
+        st.session_state.uploaded_files = []
 
     # Inject JS to strip native SVG tooltips created by Plotly (<title> tags)
     # This keeps click interactions while preventing hover pop-ups
@@ -394,26 +419,33 @@ def main():
         scrolling=False
     )
 
-    # ----------------------------------------
-    # Ensure session_state keys exist early
-    # ----------------------------------------
-    for key in ["show_detailed_view", "selected_pathway", "clicked_pathway_info"]:
-        if key not in st.session_state:
-            st.session_state[key] = None
-
     st.title("🎨 Authentic Mondrian Map Explorer")
     st.markdown("*Faithful implementation of the bioRxiv paper algorithms*")
 
     # Sidebar controls
     st.sidebar.header("📊 Dataset Configuration")
 
-    # File upload option
+    # File upload option with security checks
     uploaded_files = st.sidebar.file_uploader(
         "Upload CSV files", 
         type=['csv'], 
         accept_multiple_files=True,
         help="Upload CSV files with columns: GS_ID, wFC, pFDR, x, y"
     )
+    valid_files = []
+    for file in uploaded_files or []:
+        if not is_valid_csv_file(file.name):
+            st.sidebar.warning(f"File {file.name} has an invalid name or extension and was skipped.")
+            continue
+        try:
+            df = pd.read_csv(file)
+            if not validate_csv_columns(df):
+                st.sidebar.warning(f"File {file.name} is missing required columns and was skipped.")
+                continue
+            valid_files.append(file)
+        except Exception as e:
+            st.sidebar.warning(f"File {file.name} could not be read: {e}")
+    st.session_state.uploaded_files = valid_files
 
     # Load pathway info and DEG data
     pathway_info = load_pathway_info_cached()
